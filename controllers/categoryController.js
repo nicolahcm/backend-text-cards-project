@@ -5,30 +5,44 @@ const mongoose = require('mongoose'),
 
 // 2.1) Categories handling routes.
 // POST
-exports.createCategory = async function (title) {
-    let categ = new Category({ title: title })
-    categ.save((err, categ) => console.log(`category Saved! id is ${categ.id}`))
+exports.createCategory = async function (req, res) {
+    // Have to send a fetch of the type:
+    // fetch("http://localhost:5000/categories", {
+    //     method: 'POST',
+    //     headers: {'Content-Type':'application/json'},
+    //     body: JSON.stringify({categoryTitle: "Facultative"})
+    // }).then(res => res.json()).then(console.log)
+    // 
+    // don't forget headers!
 
-    // We have to return the ID!!! Use await! 
+
+    let { categoryTitle } = req.body
+    let categ = new Category({ title: categoryTitle })
+    let categorySaved = await categ.save()
+    let categoryId = categorySaved._id
+
+
+    console.log(categoryId)
+    // returning the id.
+    res.json(categoryId)
 }
 
-// GET 1:
-exports.getCategories = async function () {
-    let categories = await Category.find({})
-    console.log(categories)
-}
+// GET:
+exports.getCategoriesAndPopulate = async function (req, res) {
 
-// GET 2:
-exports.getCategoriesAndPopulate = async function () {
+
     let categories = await Category
         .find()
         .populate("cards", "title body")
-    console.log(categories)
+    // console.log(categories)
     // even though the console doesn't populate, it has indeed populated. 
     // It just doesn't show them because of few space in the terminal
 
     // moreover, if the references to the other objects are existing ,but the referenced objects (cards)
     // have been deleted, then it doesn't show them!
+
+
+    res.json(categories)
 }
 
 
@@ -36,35 +50,43 @@ exports.getCategoriesAndPopulate = async function () {
 
 // 2.2) Single category handling routes. 
 // GET
-exports.getOneCategory = async function (categoryId) {
-    let doc = await Category.findById(categoryId) // doc is the document category with that id.
+exports.getOneCategory = async function (req, res) {
+
+    let categoryId = req.params.categoryId
+    let doc = await Category
+        .findById(categoryId)
+        .populate("cards", "title body")
 
     console.log(doc)
+    res.json(doc)
 }
 
+
+
 // DELETE 
-exports.deleteOneCategory = async function (categoryId) {
-    Category.findByIdAndDelete({ _id: categoryId }, (err, doc) => { console.log(`${doc} has been deleted`) })
+exports.deleteOneCategory = async function (req, res) {
+
+    let categoryId = req.params.categoryId
+
+    let result = await Category.findByIdAndDelete({ _id: categoryId })
+
+    console.log(result)
+    res.json(result)
 }
 
 // UPDATE category title.
-// 1st way of doing it: retrieving, modifying on backend, and saving on db
-exports.getOneCategoryAndUpdateTitle1 = async function (categoryId, titleUpdate) {
+exports.getOneCategoryAndUpdateTitle2 = async function (req, res) {
 
-    let category = await Category.findById(categoryId)
-    category.title = titleUpdate
-    category.save().then((res) => console.log(`res updated! ${res}`))
-}
+    let categoryId = req.params.categoryId
 
-
-// 2nd way of doing it: modifying directly in the db:
-exports.getOneCategoryAndUpdateTitle2 = async function (categoryId, titleUpdate) {
+    let { categoryTitle } = req.body
 
     let result = await Category.updateOne({ _id: categoryId }, {
         $set: {
-            title: titleUpdate
+            title: categoryTitle
         }
     })
 
     console.log(result)
+    res.json(result)
 }
