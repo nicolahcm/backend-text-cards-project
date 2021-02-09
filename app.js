@@ -5,7 +5,11 @@ const express = require('express'),
     { Category } = require('./models/category.js'),
     cardController = require('./controllers/cardController.js'),
     categoryController = require('./controllers/categoryController.js'),
-    bodyParser = require('body-parser')
+    // userController = require('./controllers/userController'), We don't need to import this! Maybe the 2 controllers above
+    // could also be removed!
+    bodyParser = require('body-parser'),
+    morgan = require('morgan'),
+    path = require('path')
 
 
 mongoose.connect('mongodb://localhost/textCardArr', { useNewUrlParser: true, useUnifiedTopology: true })
@@ -16,6 +20,7 @@ mongoose.connect('mongodb://localhost/textCardArr', { useNewUrlParser: true, use
 
 // ?????????????????????????????????????????????????
 // What's left to do?
+// 0) Sorting?? What If I want a category more top than another???  
 // a) when deleting card, also delete the reference from category. <--- Hard, maybe useless.
 // b) error handling (less important), for example when nothing has been found!
 
@@ -44,8 +49,15 @@ mongoose.connect('mongodb://localhost/textCardArr', { useNewUrlParser: true, use
 
 //-----------------------------------------------
 
+app.use(express.static(path.join(__dirname, "frontend")))
+
+
+
+
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(morgan('dev'))
 
 
 
@@ -70,7 +82,8 @@ cardRoutes(app)
 let categoryRoutes = require('./routes/categoryRoutes.js')
 categoryRoutes(app)
 
-
+const userRoutes = require('./routes/userRoutes')
+userRoutes(app)
 
 const PORT = process.env.PORT || 5000;
 

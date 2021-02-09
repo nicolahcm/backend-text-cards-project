@@ -27,7 +27,7 @@ exports.createCategory = async function (req, res) {
     res.json(categoryId)
 }
 
-// GET:
+// GET: Have to order!
 exports.getCategoriesAndPopulate = async function (req, res) {
 
 
@@ -68,10 +68,10 @@ exports.deleteOneCategory = async function (req, res) {
 
     let categoryId = req.params.categoryId
 
-    let result = await Category.findByIdAndDelete({ _id: categoryId })
+    let deletedCategory = await Category.findByIdAndDelete({ _id: categoryId })
 
-    console.log(result)
-    res.json(result)
+    console.log(deletedCategory)
+    res.json(deletedCategory)
 }
 
 // UPDATE category title.
@@ -81,12 +81,13 @@ exports.getOneCategoryAndUpdateTitle2 = async function (req, res) {
 
     let { categoryTitle } = req.body
 
-    let result = await Category.updateOne({ _id: categoryId }, {
+    let updatedCategory = await Category.findByIdAndUpdate(categoryId, {
         $set: {
             title: categoryTitle
         }
-    })
+    }, { new: true }).populate('cards')
 
-    console.log(result)
-    res.json(result)
+
+    console.log(updatedCategory)
+    res.json(updatedCategory)
 }

@@ -9,22 +9,33 @@ const mongoose = require('mongoose'),
 // POST
 exports.createAndAddCardToCategory = async function (req, res) {
 
+    // Do a request like:
+    // fetch('http://localhost:5000/cards', {
+    //     method: 'POST',
+    //     headers: {'Content-Type':'application/json'},
+    //     body: JSON.stringify({belongingCategoryId:"600c72f9ede8d760749aff3a" , cardTitle:"carta31Jan14:04" , cardBody:"testonuovo" })
+    // });
+
+
 
     let { belongingCategoryId, cardTitle, cardBody } = req.body
 
     // Creating card, saving it and retrieving the _id
     let card = new Card({ title: cardTitle, body: cardBody })
     let savedCard = await card.save()
-    const idCard = savedCard.id
 
+    const idCard = savedCard._id // also .id works!
 
     // Getting the category and updating the array of cards.
-    const categ = await Category.findOne({ _id: belongingCategoryId })
+    const categ = await Category.findById(belongingCategoryId)
     categ.cards.push(idCard)
-    let result = await categ.save()
 
-    console.log(result)
-    res.json(result)
+
+    // populating after saving!
+    let updatedCategoryContainingTheCard = await categ.save().then(t => t.populate('cards').execPopulate())
+
+    console.log(`category updated! ${updatedCategoryContainingTheCard}`)
+    res.json(updatedCategoryContainingTheCard)
 }
 
 
@@ -41,7 +52,9 @@ exports.deleteCard = async function (req, res) {
     let id = req.params.id
     let result = await Card.findByIdAndDelete(id)
 
-    res.end(`${result} has been deleted!`)
+
+    // result is what??? result is exactly the deleted card: {_id: ..., title: ..., body:... ,..}
+    res.json(result)
 }
 
 // GET
@@ -49,7 +62,7 @@ exports.getCard = async function (req, res) {
     let id = req.params.id
     let card = await Card.findById(id)
 
-    res.end(`${card} found!`)
+    res.json(card)
 }
 // How to manage error handling? If card not found?
 
@@ -76,15 +89,9 @@ exports.getCardAndUpdate = async function (req, res) {
     let cardId = req.params.id
     let { cardTitle, cardBody } = req.body
 
+    let updatedDocument = await Card.findByIdAndUpdate(cardId, { $set: { title: cardTitle, body: cardBody } }, { new: true }).exec()
 
-    let result = await Card.updateOne({ _id: cardId }, {
-        $set: {
-            title: cardTitle,
-            body: cardBody
-        }
-    })
-
-    res.send(result)
+    res.json(updatedDocument)
 
 }
 
