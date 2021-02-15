@@ -5,12 +5,9 @@ const jwt = require('jsonwebtoken')
 
 
 exports.createUser = async (req, res) => {
-
-
     const { username, name, password } = req.body
 
     // 1) Have to check unique username! ok
-
     let passwordHash
 
     // 2) What if no username, name, password are sent? ok
@@ -61,13 +58,16 @@ exports.validateUser = async (req, res) => {
     }
 
     let uniqueUser
-    // 1) What if no one found?
+    // 1) What if no one found? uniqueUser is still undefined.
     try {
         [uniqueUser] = await User.find({ username: username }) // destructuring with lists!
     } catch (e) {
-        return res.json({ error: "no user found!" })
+        return res.json({ error: "internal server error in finding! If no one is found, uniqueUser is undefined// no error thworn." })
     }
 
+    if (!uniqueUser) {
+        return res.json({ error: "no user found!" })
+    }
 
     const ableToLogin = await bcrypt.compare(password, uniqueUser.passwordHash) // returns true or false.
 
@@ -78,7 +78,7 @@ exports.validateUser = async (req, res) => {
         const token = jwt.sign(data, "secret")
         console.log(token)
 
-        return res.json({ ableToLogin: ableToLogin, token: token })  // sending true or false to the frontend.}
+        return res.json({ ableToLogin: ableToLogin, token: token, name: uniqueUser.name })  // sending true or false to the frontend.}
     } else {
         return res.json({ error: "username and password don't match!" })
     }
@@ -88,11 +88,6 @@ exports.validateUser = async (req, res) => {
 // The first user created is:
 // {"name": "test", "password": "another Test2", "username": "nicolahcm"}
 // {"name": "test", "password": "hieveryone", "username": "nicolahcm2" }
-
-
-
-
-
 
 
 // let hashed = await bcrypt.hash("hi", 10)
