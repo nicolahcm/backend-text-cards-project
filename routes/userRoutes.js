@@ -8,4 +8,6 @@ module.exports = function (app) {
 
     app.post("/api/users/login", userController.validateUser)
 
+    app.post("/api/users/validate", userController.checkTokenUser)
+
 }

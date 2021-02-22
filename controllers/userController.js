@@ -90,6 +90,30 @@ exports.validateUser = async (req, res) => {
 // {"name": "test", "password": "hieveryone", "username": "nicolahcm2" }
 
 
+// This will probably be a middleware 
+// An endpoint in which I send the token and verify its validity.
+exports.checkTokenUser = async (req, res) => {
+    // Probably should send it with header Bearer.
+    // To make it simple I will just send it in the body (wrong because some hacker could get it.)
+
+    const { token } = req.body
+
+    const decodedToken = jwt.verify(token, "secret")
+    if (!token || !decodedToken.id) {
+        return response.status(401).json({ error: 'token missing or invalid' })
+    }
+
+
+    const user = await User.findById(decodedToken.id) // if not found? throws an error?
+
+    if (user) {
+        console.log("user found is", user)
+        res.json({ user: user.username })
+    }
+
+}
+
+
 // let hashed = await bcrypt.hash("hi", 10)
 // let comparison = await bcrypt.compare("hi", "$2b$10$yVFndYx2i.rnC0LFuc0FZOr62t1c2h7tdCmZ0cTMPJEcJHbHcrLR.")
 
