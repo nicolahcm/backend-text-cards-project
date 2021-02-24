@@ -1,6 +1,7 @@
 const mongoose = require('mongoose'),
     { Category } = require('../models/category'),
-    { Card } = require('../models/card')
+    { Card } = require('../models/card'),
+    { User } = require('../models/user')
 
 
 
@@ -18,10 +19,10 @@ exports.createAndAddCardToCategory = async function (req, res) {
 
 
 
-    let { belongingCategoryId, cardTitle, cardBody } = req.body
+    let { belongingCategoryId, cardTitle, cardBody, belongingAuthorId } = req.body
 
     // Creating card, saving it and retrieving the _id
-    let card = new Card({ title: cardTitle, body: cardBody })
+    let card = new Card({ title: cardTitle, body: cardBody, category: belongingCategoryId })
     let savedCard = await card.save()
 
     const idCard = savedCard._id // also .id works!
@@ -31,8 +32,21 @@ exports.createAndAddCardToCategory = async function (req, res) {
     categ.cards.push(idCard)
 
 
+
+
+    // let's update the user
+    const user = await User.update(
+        { _id: belongingAuthorId },
+        { $push: { categories: belongingCategoryId } }
+    );
+
+    console.log("user saved is ", user)
+
+
     // populating after saving!
     let updatedCategoryContainingTheCard = await categ.save().then(t => t.populate('cards').execPopulate())
+
+
 
     console.log(`category updated! ${updatedCategoryContainingTheCard}`)
     res.json(updatedCategoryContainingTheCard)

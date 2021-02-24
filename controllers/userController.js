@@ -1,4 +1,6 @@
-const User = require('../models/user');
+const { User } = require('../models/user');
+const { Category } = require('../models/category')
+const { Card } = require('../models/card')
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 
@@ -111,6 +113,25 @@ exports.checkTokenUser = async (req, res) => {
         res.json({ user: user.username })
     }
 
+}
+
+
+exports.getUserCategories = async (req, res) => {
+    const idUser = req.params.idUser
+
+    console.log(idUser)
+    console.log("type of idUser is", typeof (idUser))
+
+    const userPopulated = await User.findById(idUser).populate({
+        path: 'categories',
+        model: Category,
+        populate: {
+            path: 'cards',
+            model: Card
+        }
+    })
+
+    res.json(userPopulated)
 }
 
 

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const { Card } = require('./card.js')
+const { User } = require("./user.js")
 
 let categorySchema = new mongoose.Schema({
     title: String,
@@ -7,7 +8,12 @@ let categorySchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    cards: [{ type: mongoose.Schema.Types.ObjectId, ref: Card }]
+    cards: [{ type: mongoose.Schema.Types.ObjectId, ref: Card }],
+
+    author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: User
+    }
 })
 
 

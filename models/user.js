@@ -1,8 +1,6 @@
-const mongoose = require('mongoose')
-const uniqueValidator = require('mongoose-unique-validator')
-
-
-// 1) To add the unique username thing!
+const mongoose = require('mongoose');
+const uniqueValidator = require('mongoose-unique-validator');
+const { Category } = require('./category')
 
 const userSchema = new mongoose.Schema({
 
@@ -35,7 +33,11 @@ const userSchema = new mongoose.Schema({
     createdDate: {
         type: Date,
         default: Date.now
-    }
+    },
+
+
+    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: Category }]
+
 })
 
 userSchema.plugin(uniqueValidator)
@@ -55,4 +57,4 @@ userSchema.set('toJSON', {
 const User = mongoose.model('Users', userSchema)
 
 
-module.exports = User
+module.exports = { User: User }

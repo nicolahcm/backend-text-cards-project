@@ -16,8 +16,8 @@ exports.createCategory = async function (req, res) {
     // don't forget headers!
 
 
-    let { categoryTitle } = req.body
-    let categ = new Category({ title: categoryTitle })
+    let { categoryTitle, categoryAuthor } = req.body
+    let categ = new Category({ title: categoryTitle, author: categoryAuthor })
     let categorySaved = await categ.save()
     let categoryId = categorySaved._id
 

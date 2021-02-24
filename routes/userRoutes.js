@@ -10,4 +10,6 @@ module.exports = function (app) {
 
     app.post("/api/users/validate", userController.checkTokenUser)
 
+    app.get("/api/users/:idUser", userController.getUserCategories)
+
 }
