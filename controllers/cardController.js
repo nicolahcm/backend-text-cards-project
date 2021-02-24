@@ -1,10 +1,18 @@
 const mongoose = require('mongoose'),
     { Category } = require('../models/category'),
     { Card } = require('../models/card'),
-    { User } = require('../models/user')
+    { User } = require('../models/user'),
+    jwt = require('jsonwebtoken')
 
 
 
+const getTokenFrom = request => {
+    const authorization = request.get('authorization')
+    if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+        return authorization.substring(7)
+    }
+    return null
+}
 
 // 3.1) Cards route handiling
 // POST
@@ -17,9 +25,22 @@ exports.createAndAddCardToCategory = async function (req, res) {
     //     body: JSON.stringify({belongingCategoryId:"600c72f9ede8d760749aff3a" , cardTitle:"carta31Jan14:04" , cardBody:"testonuovo" })
     // });
 
+    let token = getTokenFrom(req)
+
+    console.log("token is", token)
+
+    const decodedToken = jwt.verify(token, "secret")
+
+    if (!token || !decodedToken.id) {
+        return response.status(401).json({ error: 'token missing or invalid' })
+    }
+
+    console.log("decodedToken is", decodedToken)
+
+    let categoryAuthor = decodedToken.id
 
 
-    let { belongingCategoryId, cardTitle, cardBody, belongingAuthorId } = req.body
+    let { belongingCategoryId, cardTitle, cardBody } = req.body
 
     // Creating card, saving it and retrieving the _id
     let card = new Card({ title: cardTitle, body: cardBody, category: belongingCategoryId })
@@ -32,15 +53,7 @@ exports.createAndAddCardToCategory = async function (req, res) {
     categ.cards.push(idCard)
 
 
-
-
-    // let's update the user
-    const user = await User.update(
-        { _id: belongingAuthorId },
-        { $push: { categories: belongingCategoryId } }
-    );
-
-    console.log("user saved is ", user)
+    // do not need to update the user! We would be adding again the category to the user!
 
 
     // populating after saving!

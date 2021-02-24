@@ -9,7 +9,8 @@ const express = require('express'),
     // could also be removed!
     bodyParser = require('body-parser'),
     morgan = require('morgan'),
-    path = require('path')
+    path = require('path'),
+    cors = require('cors')
 
 
 mongoose.connect('mongodb://localhost/textCardArr', { useNewUrlParser: true, useUnifiedTopology: true })
@@ -54,7 +55,7 @@ app.use(express.static(path.join(__dirname, "frontend")))
 
 
 
-
+app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(morgan('dev'))

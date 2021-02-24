@@ -1,6 +1,17 @@
 const mongoose = require('mongoose'),
-    { Category } = require('../models/category')
+    { Category } = require('../models/category'),
+    jwt = require('jsonwebtoken'),
+    { User } = require('../models/user')
 
+
+
+const getTokenFrom = request => {
+    const authorization = request.get('authorization')
+    if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+        return authorization.substring(7)
+    }
+    return null
+}
 
 
 // 2.1) Categories handling routes.
@@ -16,10 +27,33 @@ exports.createCategory = async function (req, res) {
     // don't forget headers!
 
 
-    let { categoryTitle, categoryAuthor } = req.body
+
+    let token = getTokenFrom(req)
+
+    console.log("token is", token)
+
+    const decodedToken = jwt.verify(token, "secret")
+
+    if (!token || !decodedToken.id) {
+        return response.status(401).json({ error: 'token missing or invalid' })
+    }
+
+    console.log("decodedToken is", decodedToken)
+
+    let categoryAuthor = decodedToken.id
+
+    let { categoryTitle } = req.body
     let categ = new Category({ title: categoryTitle, author: categoryAuthor })
     let categorySaved = await categ.save()
     let categoryId = categorySaved._id
+
+
+    const user = await User.update(
+        { _id: categoryAuthor },
+        { $push: { categories: categoryId } }
+    );
+
+    console.log("user", user, "has updated the category!")
 
 
     console.log(categoryId)
