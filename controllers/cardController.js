@@ -76,6 +76,30 @@ exports.getAllCards = async function (req, res) {
 // 3.2) Card route handling (one single card)
 // DELETE
 exports.deleteCard = async function (req, res) {
+
+    // 1) Getting token from headers authorization so that we can identify who is making the request.
+    let token = getTokenFrom(req)
+    const decodedToken = jwt.verify(token, "secret")
+
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: 'token missing or invalid' })
+    }
+
+    console.log("deleting card...")
+
+    let idUser = decodedToken.id
+
+    try {
+        let user = await User.findById(idUser)
+    }
+    catch (e) {
+        console.log("user not found. invalid request")
+
+        return res.status(401).json({ error: 'token missing or invalid' })
+    }
+
+
+    // 2) deleting the card.
     let id = req.params.id
     let result = await Card.findByIdAndDelete(id)
 
@@ -97,6 +121,34 @@ exports.getCard = async function (req, res) {
 // PUT 
 exports.getCardAndUpdate = async function (req, res) {
     /// Assuming our body will have two keys: "cardBody" and "cardTitle"
+
+
+    // 1) Getting token from headers authorization so that we can identify who is making the request.
+    let token = getTokenFrom(req)
+    const decodedToken = jwt.verify(token, "secret")
+
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: 'token missing or invalid' })
+    }
+
+    console.log("updating card...")
+
+    let idUser = decodedToken.id
+
+    console.log('idUser is', idUser)
+
+    try {
+        let user = await User.findById(idUser)
+    }
+    catch (e) {
+        console.log("user not found. invalid request")
+
+        return res.status(401).json({ error: 'token missing or invalid' })
+    }
+
+
+    // This above will be a middleware in future.
+
 
 
     console.log("req.body is", req.body)

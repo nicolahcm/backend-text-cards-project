@@ -1,7 +1,8 @@
 const mongoose = require('mongoose'),
     { Category } = require('../models/category'),
     jwt = require('jsonwebtoken'),
-    { User } = require('../models/user')
+    { User } = require('../models/user'),
+    { Card } = require('../models/card')
 
 
 
@@ -35,7 +36,7 @@ exports.createCategory = async function (req, res) {
     const decodedToken = jwt.verify(token, "secret")
 
     if (!token || !decodedToken.id) {
-        return response.status(401).json({ error: 'token missing or invalid' })
+        return res.status(401).json({ error: 'token missing or invalid' })
     }
 
     console.log("decodedToken is", decodedToken)
@@ -65,19 +66,38 @@ exports.createCategory = async function (req, res) {
 exports.getCategoriesAndPopulate = async function (req, res) {
 
 
-    let categories = await Category
-        .find()
-        .populate("cards", "title body")
-    // console.log(categories)
-    // even though the console doesn't populate, it has indeed populated. 
-    // It just doesn't show them because of few space in the terminal
+    // 1) Getting token from headers authorization so that we can identify who is making the request.
+    let token = getTokenFrom(req)
 
-    // moreover, if the references to the other objects are existing ,but the referenced objects (cards)
-    // have been deleted, then it doesn't show them!
+    console.log("token is", token)
 
+    const decodedToken = jwt.verify(token, "secret")
 
-    res.json(categories)
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: 'token missing or invalid' })
+    }
+
+    console.log("decodedToken is", decodedToken)
+
+    let idUser = decodedToken.id
+
+    console.log(idUser)
+    console.log("type of idUser is", typeof (idUser))
+
+    // 2) Getting the user info and then getting the categories of the user.
+    const userPopulated = await User.findById(idUser).populate({
+        path: 'categories',
+        model: Category,
+        populate: {
+            path: 'cards',
+            model: Card
+        }
+    })
+
+    // 3) sending the categories of the user.
+    res.json(userPopulated.categories)
 }
+
 
 
 
@@ -100,6 +120,33 @@ exports.getOneCategory = async function (req, res) {
 // DELETE 
 exports.deleteOneCategory = async function (req, res) {
 
+    // 1) Getting token from headers authorization so that we can identify who is making the request.
+    let token = getTokenFrom(req)
+
+    console.log("token is", token)
+
+    const decodedToken = jwt.verify(token, "secret")
+
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: 'token missing or invalid' })
+    }
+
+    console.log("decodedToken is", decodedToken)
+    console.log("deleting category...")
+
+    let idUser = decodedToken.id
+
+    try {
+        let user = await User.findById(idUser)
+    }
+    catch (e) {
+        console.log("user not found. invalid request")
+
+        return res.status(401).json({ error: 'token missing or invalid' })
+    }
+
+
+
     let categoryId = req.params.categoryId
 
     let deletedCategory = await Category.findByIdAndDelete({ _id: categoryId })
@@ -108,8 +155,36 @@ exports.deleteOneCategory = async function (req, res) {
     res.json(deletedCategory)
 }
 
-// UPDATE category title.
+// UPDATE category title.  
 exports.getOneCategoryAndUpdateTitle2 = async function (req, res) {
+
+    // 1) token checking
+    let token = getTokenFrom(req)
+    const decodedToken = jwt.verify(token, "secret")
+
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: 'token missing or invalid' })
+    }
+
+    console.log("updating category...")
+
+    let idUser = decodedToken.id
+
+    console.log('idUser is', idUser)
+
+    try {
+        let user = await User.findById(idUser)
+    }
+    catch (e) {
+        console.log("user not found. invalid request")
+
+        return res.status(401).json({ error: 'token missing or invalid' })
+    }
+
+
+
+
+    // Above is token checking
 
     let categoryId = req.params.categoryId
 

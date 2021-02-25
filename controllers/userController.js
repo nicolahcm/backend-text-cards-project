@@ -102,7 +102,7 @@ exports.checkTokenUser = async (req, res) => {
 
     const decodedToken = jwt.verify(token, "secret")
     if (!token || !decodedToken.id) {
-        return response.status(401).json({ error: 'token missing or invalid' })
+        return res.status(401).json({ error: 'token missing or invalid' })
     }
 
 
